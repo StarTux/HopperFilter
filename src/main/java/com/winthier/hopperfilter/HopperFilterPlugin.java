@@ -91,7 +91,7 @@ public final class HopperFilterPlugin extends JavaPlugin implements Listener {
 
     private List<ItemFrame> getSurroundingItemFrames(Block block) {
         //Look right next to the hopper and avoid the frames on another hopper
-        double radius = 0.45;
+        double radius = 0.75;
         List<ItemFrame> result = new ArrayList<ItemFrame>();
         for (Entity entity : block.getWorld().getNearbyEntities(block.getLocation().add(0.5, 0.5, 0.5), radius, 0, radius)) {
             if (entity instanceof ItemFrame) {
@@ -146,7 +146,7 @@ public final class HopperFilterPlugin extends JavaPlugin implements Listener {
         }
         StringBuilder sb = new StringBuilder("&3[HopperFilter]&b Filters:");
         for (FilterItem item : filter.getFilterItems()) {
-            sb.append(" ").append(item.toString());
+            sb.append(" ").append(item.getItemStack().toString());
         }
         sendMessage(player, sb.toString());
     }

@@ -1,7 +1,9 @@
 package com.winthier.hopperfilter;
 
+import lombok.Getter;
 import org.bukkit.inventory.ItemStack;
 
+@Getter
 public final class FilterItem {
     private final ItemStack itemStack;
 
