@@ -1,9 +1,8 @@
 package com.winthier.hopperfilter;
 
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
-public class FilterItem {
+public final class FilterItem {
     private final ItemStack itemStack;
 
     public FilterItem(ItemStack item) {

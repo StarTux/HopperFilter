@@ -6,7 +6,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
 
-public class FilterItemList {
+public final class FilterItemList {
     private List<FilterItem> items;
 
     public FilterItemList(List<ItemFrame> itemFrames) {

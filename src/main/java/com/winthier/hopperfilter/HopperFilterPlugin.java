@@ -13,7 +13,6 @@ import org.bukkit.block.Hopper;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -38,7 +37,7 @@ import org.bukkit.metadata.MetadataValue;
 import org.bukkit.metadata.Metadatable;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class HopperFilterPlugin extends JavaPlugin implements Listener {
+public final class HopperFilterPlugin extends JavaPlugin implements Listener {
     private final Map<Player, Boolean> debugPlayers = new WeakHashMap<Player, Boolean>();
     private final Map<Player, Boolean> inspectPlayers = new WeakHashMap<Player, Boolean>();
 
@@ -58,7 +57,7 @@ public class HopperFilterPlugin extends JavaPlugin implements Listener {
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String args[]) {
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
             sender.sendMessage("Player expected.");
             return true;
@@ -91,16 +90,10 @@ public class HopperFilterPlugin extends JavaPlugin implements Listener {
     }
 
     private List<ItemFrame> getSurroundingItemFrames(Block block) {
-        //Look right next to the hopper and avoid the frames on another hopper  
+        //Look right next to the hopper and avoid the frames on another hopper
         double radius = 0.45;
-        //create an entity in the exact center of the block so we can find the surrounding attached entities.
-        Entity orb = block.getWorld().spawnEntity(block.getLocation().add(0.5,0.5,0.5), EntityType.EXPERIENCE_ORB);
-        //get all other entities in a radius around this entity not looking up or down. 
-        List<Entity> entities = orb.getNearbyEntities(radius, 0, radius);
-        //remove the temp entity
-        orb.remove();
         List<ItemFrame> result = new ArrayList<ItemFrame>();
-        for (Entity entity : entities) {
+        for (Entity entity : block.getWorld().getNearbyEntities(block.getLocation().add(0.5, 0.5, 0.5), radius, 0, radius)) {
             if (entity instanceof ItemFrame) {
                 ItemFrame itemFrame = (ItemFrame)entity;
                 if (itemFrame.getLocation().getBlock().getRelative(itemFrame.getAttachedFace()).equals(block)) result.add(itemFrame);
