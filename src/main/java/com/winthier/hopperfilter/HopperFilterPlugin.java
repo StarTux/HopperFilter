@@ -93,7 +93,7 @@ public final class HopperFilterPlugin extends JavaPlugin implements Listener {
         //Look right next to the hopper and avoid the frames on another hopper
         double radius = 0.75;
         List<ItemFrame> result = new ArrayList<ItemFrame>();
-        for (Entity entity : block.getWorld().getNearbyEntities(block.getLocation().add(0.5, 0.5, 0.5), radius, 0, radius)) {
+        for (Entity entity : block.getWorld().getNearbyEntities(block.getLocation().add(0.5, 0.5, 0.5), radius, radius, radius)) {
             if (entity instanceof ItemFrame) {
                 ItemFrame itemFrame = (ItemFrame)entity;
                 if (itemFrame.getLocation().getBlock().getRelative(itemFrame.getAttachedFace()).equals(block)) result.add(itemFrame);
