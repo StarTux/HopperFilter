@@ -62,7 +62,7 @@ public final class HopperFilterPlugin extends JavaPlugin implements Listener {
             sender.sendMessage("Player expected.");
             return true;
         }
-        Player player = (Player)sender;
+        Player player = (Player) sender;
         if (args.length == 0) {
             return false;
         } else if ("Debug".equalsIgnoreCase(args[0]) && args.length == 1) {
@@ -95,7 +95,7 @@ public final class HopperFilterPlugin extends JavaPlugin implements Listener {
         List<ItemFrame> result = new ArrayList<ItemFrame>();
         for (Entity entity : block.getWorld().getNearbyEntities(block.getLocation().add(0.5, 0.5, 0.5), radius, radius, radius)) {
             if (entity instanceof ItemFrame) {
-                ItemFrame itemFrame = (ItemFrame)entity;
+                ItemFrame itemFrame = (ItemFrame) entity;
                 if (itemFrame.getLocation().getBlock().getRelative(itemFrame.getAttachedFace()).equals(block)) result.add(itemFrame);
             }
         }
@@ -112,7 +112,7 @@ public final class HopperFilterPlugin extends JavaPlugin implements Listener {
 
     private FilterItemList getMetadata(Metadatable storage) {
         for (MetadataValue val : storage.getMetadata("filter")) {
-            if (val.getOwningPlugin() == this && val.value() instanceof FilterItemList) return (FilterItemList)val.value();
+            if (val.getOwningPlugin() == this && val.value() instanceof FilterItemList) return (FilterItemList) val.value();
         }
         return null;
     }
@@ -155,7 +155,7 @@ public final class HopperFilterPlugin extends JavaPlugin implements Listener {
     public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
         final Entity entity = event.getRightClicked();
         if (!(entity instanceof ItemFrame)) return;
-        clearCacheForItemFrame((ItemFrame)entity);
+        clearCacheForItemFrame((ItemFrame) entity);
         sendDebug(event.getPlayer(), "Interact ItemFrame");
     }
 
@@ -163,11 +163,11 @@ public final class HopperFilterPlugin extends JavaPlugin implements Listener {
     public void onEntityDamage(EntityDamageEvent event) {
         final Entity entity = event.getEntity();
         if (!(entity instanceof ItemFrame)) return;
-        clearCacheForItemFrame((ItemFrame)entity);
+        clearCacheForItemFrame((ItemFrame) entity);
         if (event instanceof EntityDamageByEntityEvent) {
-            Entity e = ((EntityDamageByEntityEvent)event).getDamager();
+            Entity e = ((EntityDamageByEntityEvent) event).getDamager();
             if (e instanceof Player) {
-                sendDebug((Player)e, "Damage ItemFrame");
+                sendDebug((Player) e, "Damage ItemFrame");
             }
         }
     }
@@ -176,11 +176,11 @@ public final class HopperFilterPlugin extends JavaPlugin implements Listener {
     public void onHangingBreak(HangingBreakEvent event) {
         final Entity entity = event.getEntity();
         if (!(entity instanceof ItemFrame)) return;
-        clearCacheForItemFrame((ItemFrame)entity);
+        clearCacheForItemFrame((ItemFrame) entity);
         if (event instanceof HangingBreakByEntityEvent) {
-            Entity e = ((HangingBreakByEntityEvent)event).getRemover();
+            Entity e = ((HangingBreakByEntityEvent) event).getRemover();
             if (e instanceof Player) {
-                sendDebug((Player)e, "Break ItemFrame");
+                sendDebug((Player) e, "Break ItemFrame");
             }
         }
     }
@@ -189,7 +189,7 @@ public final class HopperFilterPlugin extends JavaPlugin implements Listener {
     public void onHangingPlace(HangingPlaceEvent event) {
         final Entity entity = event.getEntity();
         if (!(entity instanceof ItemFrame)) return;
-        clearCacheForItemFrame((ItemFrame)entity);
+        clearCacheForItemFrame((ItemFrame) entity);
         sendDebug(event.getPlayer(), "Place ItemFrame");
     }
 
@@ -227,32 +227,32 @@ public final class HopperFilterPlugin extends JavaPlugin implements Listener {
     private boolean canAdd(Block block, ItemStack add) {
         BlockState state = block.getState();
         if (!(state instanceof InventoryHolder)) return false;
-        return canAdd(((InventoryHolder)state).getInventory(), add);
+        return canAdd(((InventoryHolder) state).getInventory(), add);
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
     public void onInventoryMoveItem(InventoryMoveItemEvent event) {
         final InventoryHolder holder = event.getDestination().getHolder();
         if (!(holder instanceof Hopper)) return;
-        final Block block = ((Hopper)holder).getBlock();
-        { // Special case for horizontal hopper movement which might be too fast.
-            final InventoryHolder sourceHolder = event.getSource().getHolder();
-            if (sourceHolder instanceof Hopper) {
-                Block sourceBlock = ((Hopper)sourceHolder).getBlock();
-                if (sourceBlock.getY() == block.getY()) {
-                    final Block lowerBlock = sourceBlock.getRelative(BlockFace.DOWN);
-                    if (!lowerBlock.isBlockPowered()) {
-                        final FilterItemList lowerFilter = getFilterItemList(lowerBlock);
-                        if (lowerFilter != null && !lowerFilter.isEmpty() && lowerFilter.allowsItem(event.getItem())) {
-                            if (canAdd(lowerBlock, event.getItem())) {
-                                event.setCancelled(true);
-                                return;
-                            }
+        final Block block = ((Hopper) holder).getBlock();
+        // Special case for horizontal hopper movement which might be too fast.
+        final InventoryHolder sourceHolder = event.getSource().getHolder();
+        if (sourceHolder instanceof Hopper) {
+            Block sourceBlock = ((Hopper) sourceHolder).getBlock();
+            if (sourceBlock.getY() == block.getY()) {
+                final Block lowerBlock = sourceBlock.getRelative(BlockFace.DOWN);
+                if (!lowerBlock.isBlockPowered()) {
+                    final FilterItemList lowerFilter = getFilterItemList(lowerBlock);
+                    if (lowerFilter != null && !lowerFilter.isEmpty() && lowerFilter.allowsItem(event.getItem())) {
+                        if (canAdd(lowerBlock, event.getItem())) {
+                            event.setCancelled(true);
+                            return;
                         }
                     }
                 }
             }
         }
+        //
         FilterItemList filter = getFilterItemList(block);
         if (filter == null) return;
         if (!filter.allowsItem(event.getItem())) {
@@ -264,7 +264,7 @@ public final class HopperFilterPlugin extends JavaPlugin implements Listener {
     public void onInventoryPickupItem(InventoryPickupItemEvent event) {
         final InventoryHolder holder = event.getInventory().getHolder();
         if (!(holder instanceof Hopper)) return;
-        final Block block = ((Hopper)holder).getBlock();
+        final Block block = ((Hopper) holder).getBlock();
         FilterItemList filter = getFilterItemList(block);
         if (filter == null) return;
         if (!filter.allowsItem(event.getItem().getItemStack())) {

@@ -7,7 +7,7 @@ import org.bukkit.inventory.ItemStack;
 public final class FilterItem {
     private final ItemStack itemStack;
 
-    public FilterItem(ItemStack item) {
+    public FilterItem(final ItemStack item) {
         this.itemStack = item.clone();
     }
 

@@ -9,7 +9,7 @@ import org.bukkit.inventory.ItemStack;
 public final class FilterItemList {
     private List<FilterItem> items;
 
-    public FilterItemList(List<ItemFrame> itemFrames) {
+    public FilterItemList(final List<ItemFrame> itemFrames) {
         items = new ArrayList<FilterItem>();
         for (ItemFrame itemFrame : itemFrames) {
             ItemStack item = itemFrame.getItem();
