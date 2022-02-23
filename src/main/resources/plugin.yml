@@ -1,19 +1,27 @@
+main: com.winthier.hopperfilter.HopperFilterPlugin
 name: HopperFilter
+
+version: 0.1
+api-version: 1.18
+
 description: Turn hoppers into filters when item frames are attached
 author: StarTux
-version: 0.1
-api-version: 1.13
 website: https://github.com/StarTux/HopperFilter
-main: com.winthier.hopperfilter.HopperFilterPlugin
-depend: []
+
+depend: [Mytems]
+softdepend: []
+
 commands:
-  HopperFilter:
+
+  hopperfilter:
     description: Admin interface
     usage: |-
-      /HopperFilter Debug - Toggle debug output.
-      /HopperFilter Inspect - Toggle inspection mode.
+      /hopperfilter debug - Toggle debug output.
+      /hopperfilter inspect - Toggle inspection mode.
     permission: hopperfilter.hopperfilter
+
 permissions:
+
   hopperfilter.hopperfilter:
     description: Use the /hopperfilter command.
     default: op

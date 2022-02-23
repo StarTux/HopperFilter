@@ -1,10 +1,12 @@
 package com.winthier.hopperfilter;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
-import org.bukkit.ChatColor;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -36,10 +38,12 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.metadata.Metadatable;
 import org.bukkit.plugin.java.JavaPlugin;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 public final class HopperFilterPlugin extends JavaPlugin implements Listener {
-    private final Map<Player, Boolean> debugPlayers = new WeakHashMap<Player, Boolean>();
-    private final Map<Player, Boolean> inspectPlayers = new WeakHashMap<Player, Boolean>();
+    private final Set<UUID> debugPlayers = new HashSet<>();
+    private final Set<UUID> inspectPlayers = new HashSet<>();
 
     @Override
     public void onEnable() {
@@ -47,46 +51,46 @@ public final class HopperFilterPlugin extends JavaPlugin implements Listener {
     }
 
     @Override
-    public void onDisable() {
-    }
-
-    private static void sendMessage(CommandSender sender, String msg, Object... args) {
-        msg = ChatColor.translateAlternateColorCodes('&', msg);
-        msg = String.format(msg, args);
-        sender.sendMessage(msg);
-    }
-
-    @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage("Player expected.");
+            sender.sendMessage("[hopperfilter:hopperfilter] player expected");
             return true;
         }
         Player player = (Player) sender;
-        if (args.length == 0) {
-            return false;
-        } else if ("Debug".equalsIgnoreCase(args[0]) && args.length == 1) {
-            boolean debug = debugPlayers.containsKey(player);
+        if (args.length == 0) return false;
+        switch (args[0]) {
+        case "debug": {
+            boolean debug = debugPlayers.contains(player.getUniqueId());
             if (debug) {
-                debugPlayers.remove(player);
-                sendMessage(player, "&3[HopperFilter]&b Debug mode turned off.");
+                debugPlayers.remove(player.getUniqueId());
+                player.sendMessage(text("Debug mode turned off", YELLOW));
             } else {
-                debugPlayers.put(player, true);
-                sendMessage(player, "&3[HopperFilter]&b Debug mode turned on.");
-            }
-            return true;
-        } else if ("Inspect".equalsIgnoreCase(args[0]) && args.length == 1) {
-            boolean inspect = inspectPlayers.containsKey(player);
-            if (inspect) {
-                inspectPlayers.remove(player);
-                sendMessage(player, "&3[HopperFilter]&b Inspection mode turned off.");
-            } else {
-                inspectPlayers.put(player, true);
-                sendMessage(player, "&3[HopperFilter]&b Inspection mode turned on. Punch a hopper to display its filters.");
+                debugPlayers.add(player.getUniqueId());
+                player.sendMessage(text("Debug mode turned on", AQUA));
             }
             return true;
         }
-        return false;
+        case "inspect": {
+            boolean inspect = inspectPlayers.contains(player.getUniqueId());
+            if (inspect) {
+                inspectPlayers.remove(player.getUniqueId());
+                player.sendMessage(text("Inspection mode turned off", YELLOW));
+            } else {
+                inspectPlayers.add(player.getUniqueId());
+                player.sendMessage(text("Inspection mode turned on. Punch a hopper to display its filters", AQUA));
+            }
+            return true;
+        }
+        default:
+            return false;
+        }
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        return args.length == 1
+            ? Stream.of("debug", "inspect").filter(s -> s.contains(args[0])).collect(Collectors.toList())
+            : List.of();
     }
 
     private List<ItemFrame> getSurroundingItemFrames(Block block) {
@@ -132,23 +136,17 @@ public final class HopperFilterPlugin extends JavaPlugin implements Listener {
         removeMetadata(itemFrame.getLocation().getBlock().getRelative(itemFrame.getAttachedFace()));
     }
 
-    private void sendDebug(Player player, String message) {
-        if (!debugPlayers.containsKey(player)) return;
-        sendMessage(player, "&3[HopperFilter]&b Debug: " + message);
-    }
-
-
     private void inspect(Player player, Block block) {
         FilterItemList filter = getFilterItemList(block);
         if (filter == null || filter.isEmpty()) {
-            sendMessage(player, "&3[HopperFilter]&b This hopper is not a filter.");
+            player.sendMessage(text("[HopperFilter] This hopper is not a filter!", RED));
             return;
         }
-        StringBuilder sb = new StringBuilder("&3[HopperFilter]&b Filters:");
+        StringBuilder sb = new StringBuilder();
         for (FilterItem item : filter.getFilterItems()) {
             sb.append(" ").append(item.getItemStack().toString());
         }
-        sendMessage(player, sb.toString());
+        player.sendMessage(text("[HopperFilter] Filters:" + sb.toString(), YELLOW));
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
@@ -156,7 +154,9 @@ public final class HopperFilterPlugin extends JavaPlugin implements Listener {
         final Entity entity = event.getRightClicked();
         if (!(entity instanceof ItemFrame)) return;
         clearCacheForItemFrame((ItemFrame) entity);
-        sendDebug(event.getPlayer(), "Interact ItemFrame");
+        if (debugPlayers.contains(event.getPlayer().getUniqueId())) {
+            event.getPlayer().sendMessage(text("[HopperFilter] Interact ItemFrame", YELLOW));
+        }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
@@ -166,8 +166,10 @@ public final class HopperFilterPlugin extends JavaPlugin implements Listener {
         clearCacheForItemFrame((ItemFrame) entity);
         if (event instanceof EntityDamageByEntityEvent) {
             Entity e = ((EntityDamageByEntityEvent) event).getDamager();
-            if (e instanceof Player) {
-                sendDebug((Player) e, "Damage ItemFrame");
+            if (e instanceof Player player) {
+                if (debugPlayers.contains(player.getUniqueId())) {
+                    player.sendMessage(text("[HopperFilter] Damage ItemFrame", YELLOW));
+                }
             }
         }
     }
@@ -179,8 +181,10 @@ public final class HopperFilterPlugin extends JavaPlugin implements Listener {
         clearCacheForItemFrame((ItemFrame) entity);
         if (event instanceof HangingBreakByEntityEvent) {
             Entity e = ((HangingBreakByEntityEvent) event).getRemover();
-            if (e instanceof Player) {
-                sendDebug((Player) e, "Break ItemFrame");
+            if (e instanceof Player player) {
+                if (debugPlayers.contains(player.getUniqueId())) {
+                    player.sendMessage(text("[HopperFilter] Break ItemFrame", YELLOW));
+                }
             }
         }
     }
@@ -190,20 +194,24 @@ public final class HopperFilterPlugin extends JavaPlugin implements Listener {
         final Entity entity = event.getEntity();
         if (!(entity instanceof ItemFrame)) return;
         clearCacheForItemFrame((ItemFrame) entity);
-        sendDebug(event.getPlayer(), "Place ItemFrame");
+        if (debugPlayers.contains(event.getPlayer().getUniqueId())) {
+            event.getPlayer().sendMessage(text("[HopperFilter] Place ItemFrame", YELLOW));
+        }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onBlockBreak(BlockBreakEvent event) {
         final Block block = event.getBlock();
         if (block.getType() != Material.HOPPER) return;
-        if (inspectPlayers.containsKey(event.getPlayer())) {
+        if (inspectPlayers.contains(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
             inspect(event.getPlayer(), event.getBlock());
             return;
         }
         removeMetadata(block);
-        sendDebug(event.getPlayer(), "Break Hopper");
+        if (debugPlayers.contains(event.getPlayer().getUniqueId())) {
+            event.getPlayer().sendMessage(text("[HopperFilter] Break Hopper", YELLOW));
+        }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
@@ -211,7 +219,9 @@ public final class HopperFilterPlugin extends JavaPlugin implements Listener {
         final Block block = event.getBlock();
         if (block.getType() != Material.HOPPER) return;
         removeMetadata(event.getBlock());
-        sendDebug(event.getPlayer(), "Place Hopper");
+        if (debugPlayers.contains(event.getPlayer().getUniqueId())) {
+            event.getPlayer().sendMessage(text("[HopperFilter] Place Hopper", YELLOW));
+        }
     }
 
     private boolean canAdd(Inventory inventory, ItemStack add) {
@@ -275,7 +285,7 @@ public final class HopperFilterPlugin extends JavaPlugin implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onBlockDamage(BlockDamageEvent event) {
         if (event.getBlock().getType() != Material.HOPPER) return;
-        if (!inspectPlayers.containsKey(event.getPlayer())) return;
+        if (!inspectPlayers.contains(event.getPlayer().getUniqueId())) return;
         event.setCancelled(true);
         inspect(event.getPlayer(), event.getBlock());
     }

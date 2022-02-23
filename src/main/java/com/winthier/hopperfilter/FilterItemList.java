@@ -3,6 +3,7 @@ package com.winthier.hopperfilter;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Material;
+import org.bukkit.entity.GlowItemFrame;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
 
@@ -14,7 +15,7 @@ public final class FilterItemList {
         for (ItemFrame itemFrame : itemFrames) {
             ItemStack item = itemFrame.getItem();
             if (item != null && item.getType() != Material.AIR) {
-                items.add(new FilterItem(item));
+                items.add(new FilterItem(item, itemFrame instanceof GlowItemFrame));
             }
         }
     }
