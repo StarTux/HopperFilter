@@ -2,7 +2,7 @@ main: com.winthier.hopperfilter.HopperFilterPlugin
 name: HopperFilter
 
 version: 0.1
-api-version: 1.18
+api-version: '1.20'
 
 description: Turn hoppers into filters when item frames are attached
 author: StarTux
